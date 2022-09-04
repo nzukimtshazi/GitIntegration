@@ -32,46 +32,37 @@
                         input-sm', 'required')) !!}
                     </div>
 
-                    <div class="form-group form-group-sm">
+                    <div class="form-group">
                         {!! Form::Label('client_id', 'Client:') !!}
-                        <input list="client_id" type="text">
-
-                        <datalist id="client_id">
-                            <select class="form-control input-sm form-control-sm required" name="client_id" id="client_id">
-                                @foreach($clients as $client)
-                                    <option value="{{$client->name}}" @if(old('client_id')==$client->id)
-                                    selected="selected"@endif>{{$client->name}}</option>
-                                @endforeach
-                            </select>
-                        </datalist>
+                        <select class="form-control input-sm form-control-sm" name="client_id" id="client_id">
+                            <option value="">Select a Client</option>
+                            @foreach($clients as $client)
+                                <option value="{{$client->id}}" @if(old('client_id')==$client->id)
+                                selected="selected"@endif>{{$client->name}}</option>
+                            @endforeach
+                        </select>
                     </div>
 
-                    <div class="form-group form-group-sm">
+                    <div class="form-group">
                         {!! Form::Label('priority_id', 'Priority:') !!}
-                        <input list="priority_id" type="text">
-
-                        <datalist id="priority_id">
-                            <select class="form-control input-sm form-control-sm required" name="priority_id" id="priority_id">
-                                @foreach($priorities as $priority)
-                                    <option value="{{$priority->description}}" @if(old('priority_id')==$priority->id)
-                                    selected="selected"@endif>{{$priority->description}}</option>
-                                @endforeach
-                            </select>
-                        </datalist>
+                        <select class="form-control input-sm form-control-sm" name="priority_id" id="priority_id">
+                            <option value="">Choose Priority</option>
+                            @foreach($priorities as $priority)
+                                <option value="{{$priority->id}}" @if(old('priority_id')==$priority->id)
+                                selected="selected"@endif>{{$priority->description}}</option>
+                            @endforeach
+                        </select>
                     </div>
 
-                    <div class="form-group form-group-sm">
+                    <div class="form-group">
                         {!! Form::Label('type_id', 'Type:') !!}
-                        <input list="type_id" type="text">
-
-                        <datalist id="type_id">
-                            <select class="form-control input-sm form-control-sm required" name="type_id" id="type_id">
-                                @foreach($types as $type)
-                                    <option value="{{$type->description}}" @if(old('type_id')==$type->id)
-                                    selected="selected"@endif>{{$type->description}}</option>
-                                @endforeach
-                            </select>
-                        </datalist>
+                        <select class="form-control input-sm form-control-sm" name="type_id" id="type_id">
+                            <option value="">Choose Type</option>
+                            @foreach($types as $type)
+                                <option value="{{$type->id}}" @if(old('type_id')==$type->id)
+                                selected="selected"@endif>{{$type->description}}</option>
+                            @endforeach
+                        </select>
                     </div>
 
                     <div class="form-group form-group-sm">

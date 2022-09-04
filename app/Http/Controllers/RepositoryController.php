@@ -12,6 +12,7 @@ use App\Models\Client;
 use App\Models\Priority;
 use App\Models\Repository;
 use App\Models\Type;
+use Illuminate\Support\Facades\Redirect;
 
 class RepositoryController extends Controller
 {
@@ -22,8 +23,30 @@ class RepositoryController extends Controller
      */
     public function index()
     {
-        $repositories = Repository::where('id', '>', 0)->get();
-        return view('repository.index', compact('repositories'));
+        $repInfo = Repository::where('id', '>', 0)->get();
+        $repositories = array();
+        $no = 1;
+
+        foreach ($repInfo as $repo)
+        {
+            $client = Client::where('id', '=', $repo->client_id)->first();
+            $priority = Priority::where('id', '=', $repo->priority_id)->first();
+            $type = Type::where('id', '=', $repo->priority_id)->first();
+
+            $repoInfo = new RepoInfo();
+            $repoInfo->no = $no++;
+            $repoInfo->id = $repo->id;
+            $repoInfo->title = $repo->title;
+            $repoInfo->description = $repo->description;
+            $repoInfo->assigned_to = $repo->assigned_to;
+            $repoInfo->status = $repo->status;
+            $repoInfo->client = $client->name;
+            $repoInfo->priority = $priority->description;
+            $repoInfo->type = $type->description;
+            array_push($repositories, $repoInfo);
+        }
+
+        return view('repository.index', ['repositories' => $repositories]);
     }
 
     /**
@@ -48,37 +71,12 @@ class RepositoryController extends Controller
     public function store(Request $request)
     {
         $input = $request->all();
-        dd($request->client_id);
-
-        $client = Client::where('name', '=', $request->client_id)->count();
-        if ($client > 0)
-            return redirect('repository/add')->withInput()->with('danger', 'Client already exists');
-        else
-            $client = new Client($input);
-
-        $priority = Priority::where('description', '=', $request->priority_id)->count();
-        if ($priority > 0)
-            return redirect('repository/add')->withInput()->with('danger', 'Priority already exists');
-        else
-            $priority = new Priority($input);
-
-        $type = Type::where('description', '=', $request->type_id)->count();
-        if ($type > 0)
-            return redirect('repository/add')->withInput()->with('danger', 'Type already exists');
-        else
-            $type = new Type($request->type_id);
 
         $repository = new Repository($input);
-        $repository->client = $request->client_id;
-        $repository->priority = $request->priority_id;
-        $repository->type = $request->type_id;
+        $repository->logo = "None";
 
-        if ($repository->save()) {
-            $client->save();
-            $priority->save();
-            $type->save();
-            return Redirect::route('repository')->with('success', 'Successfully added repository!');
-        }
+        if ($repository->save())
+            return Redirect::route('repositories')->with('success', 'Successfully added repository!');
         else
             return Redirect::route('addRepository')->withInput()->withErrors($repository->errors());
     }
@@ -92,7 +90,17 @@ class RepositoryController extends Controller
     public function edit($id)
     {
         $repository = Repository::find($id);
-        return view('repository.edit', ['repository' => $repository]);
+        $clients = Client::where('id', '>', 0)->get();
+        $client = Client::where('id', '=', $repository->client_id)->first();
+        $cid = $client->id;
+        $priorities = Priority::where('id', '>', 0)->get();
+        $priority = Priority::where('id', '=', $repository->priority_id)->first();
+        $pid = $priority->id;
+        $types = Type::where('id', '>', 0)->get();
+        $type = Type::where('id', '=', $repository->type_id)->first();
+        $tid = $type->id;
+
+        return view('repository.edit', (compact('repository', 'clients', 'cid', 'priorities', 'pid', 'types', 'tid')));
     }
 
     /**
@@ -106,12 +114,18 @@ class RepositoryController extends Controller
     {
         $repository = Repository::find($id);
 
-        //$product_check = Product::where('name', '=', $request->name)->first();
+        $repos_check = Repository::where('client_id', '=', $request->client_id)
+            ->where('priority_id', '=', $request->priority_id)
+            ->where('type_id', '=', $request->type_id)->first();
 
-        //if ($product_check && $product_check->id != $id)
-        //    return Redirect::route('editProduct', [$id])->withInput()->with('danger', 'Product already exists');
+        if ($repos_check && $repos_check->id != $id)
+            return Redirect::route('editRepository', [$id])->withInput()
+                ->with('danger', 'Client for that priority and type already exists');
 
-        //$product->name = $request->name;
+        $repository->title = $request->title;
+        $repository->description = $request->description;
+        $repository->assigned_to = $request->assigned_to;
+        $repository->status = $request->status;
 
         if ($repository->update())
             return Redirect::route('repositories')->with('success', 'Successfully updated repository!');
@@ -119,4 +133,16 @@ class RepositoryController extends Controller
             return Redirect::route('editRepository', [$id])->withInput()->withErrors($repository->errors());
     }
 
+}
+class RepoInfo
+{
+    public $id;
+    public $no;
+    public $title;
+    public $description;
+    public $assigned_to;
+    public $status;
+    public $client;
+    public $priority;
+    public $type;
 }
